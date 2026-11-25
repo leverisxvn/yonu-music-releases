@@ -1,0 +1,31 @@
+name: Publish signed installer
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: public-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -c 'import json,os; d=json.load(open("latest.json")); assert "v"+d["version"]==os.environ["GITHUB_REF_NAME"]; assert set(d["platforms"])=={"windows-x86_64"}'
+          shopt -s nullglob
+          installers=(*.exe)
+          signatures=(*.exe.sig)
+          test "${#installers[@]}" = 1
+          test "${#signatures[@]}" = 1
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo 'Release exists. Publish a new version instead.'
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" "${installers[@]}" "${signatures[@]}" latest.json --verify-tag --latest --title "Yonu Music ${GITHUB_REF_NAME#v}" --notes 'Windows installer with signed in-app updates.'
