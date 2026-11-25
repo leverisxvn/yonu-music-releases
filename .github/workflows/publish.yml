@@ -18,26 +18,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -c 'import json,os; d=json.load(open("latest.json")); assert "v"+d["version"]==os.environ["GITHUB_REF_NAME"]; assert set(d["platforms"])=={"windows-x86_64"}'
-          shopt -s nullglob
-          installers=(*.exe)
-          signatures=(*.exe.sig)
-          test "${#installers[@]}" = 1
-          test "${#signatures[@]}" = 1
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            draft=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" --jq '.draft')
+          version=${GITHUB_REF_NAME#v}
+          installer="Yonu-Music_${version}_x64-setup.exe"
+          test -s "$installer"
+          test -s "$installer.sig"
+          export INSTALLER_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/$installer"
+          python3 -c 'import json,os; d=json.load(open("latest.json")); assert "v"+d["version"]==os.environ["GITHUB_REF_NAME"]; assert set(d["platforms"])=={"windows-x86_64"}; assert d["platforms"]["windows-x86_64"]["url"]==os.environ["INSTALLER_URL"]'
+          if draft=$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft 2>/dev/null); then
             if [ "$draft" != true ]; then
               echo 'Release exists. Publish a new version instead.'
               exit 1
             fi
             gh release delete "$GITHUB_REF_NAME" --yes
           fi
-          # Keep the feed unchanged until every signed package and its manifest is ready.
-          gh release create "$GITHUB_REF_NAME" "${installers[@]}" "${signatures[@]}" --verify-tag --draft --title "Yonu Music ${GITHUB_REF_NAME#v}" --notes 'Windows installer with signed in-app updates.'
-          INSTALLER_URL=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" --jq '.assets[] | select(.name | endswith(".exe")) | .browser_download_url')
-          test -n "$INSTALLER_URL"
-          export INSTALLER_URL
-          python3 -c 'import json,os; p="latest.json"; d=json.load(open(p)); d["platforms"]["windows-x86_64"]["url"]=os.environ["INSTALLER_URL"]; open(p,"w").write(json.dumps(d,indent=2))'
-          gh release upload "$GITHUB_REF_NAME" latest.json
-          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          gh release create "$GITHUB_REF_NAME" "$installer" "$installer.sig" latest.json --verify-tag --latest --title "Yonu Music $version" --notes "Windows installer with signed in-app updates."
           curl --fail --location --retry 3 --output /dev/null "$INSTALLER_URL"
