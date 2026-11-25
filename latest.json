@@ -1,0 +1,10 @@
+{
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMG94TEdYRTRPblpTUGdSeHhyYTNvNnVvK3Q4V1cwbHExb21rdkR4THN0dkJrRGpyWDBJWGxlZ05vS2k2ajMzbFVldmRHOHVZcm1mYmtKTUpNcEJodDRMbkNJQ0Vza0FzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk1NTc5OTEwCWZpbGU6WW9udSBNdXNpY18wLjIuMTFfeDY0LXNldHVwLmV4ZQl2ZXJzaW9uOjAuMi4xMQpsNWNMS2tPK3hqYngxcXdlNE9VbE43M09IZDMwUU1TU01QTWNZSUpkUkxJVGg3S1FPRmh1M0c2RGpEN2U1MUg4cGVzaTV6Y05kRVJPb2taZnNFUUxDUT09Cg==",
+      "url": "https://github.com/leverisxvn/yonu-music-releases/releases/download/v0.2.11/Yonu%20Music_0.2.11_x64-setup.exe"
+    }
+  },
+  "version": "0.2.11",
+  "pub_date": "2026-11-25T04:11:52.3771538Z"
+}
