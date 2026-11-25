@@ -28,4 +28,10 @@ jobs:
             echo 'Release exists. Publish a new version instead.'
             exit 1
           fi
-          gh release create "$GITHUB_REF_NAME" "${installers[@]}" "${signatures[@]}" latest.json --verify-tag --latest --title "Yonu Music ${GITHUB_REF_NAME#v}" --notes 'Windows installer with signed in-app updates.'
+          # Keep the feed unchanged until every signed package and its manifest is ready.
+          gh release create "$GITHUB_REF_NAME" "${installers[@]}" "${signatures[@]}" --verify-tag --draft --title "Yonu Music ${GITHUB_REF_NAME#v}" --notes 'Windows installer with signed in-app updates.'
+          export INSTALLER_URL=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" --jq '.assets[] | select(.name | endswith(".exe")) | .browser_download_url')
+          python3 -c 'import json,os; p="latest.json"; d=json.load(open(p)); d["platforms"]["windows-x86_64"]["url"]=os.environ["INSTALLER_URL"]; open(p,"w").write(json.dumps(d,indent=2))'
+          gh release upload "$GITHUB_REF_NAME" latest.json
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          curl --fail --location --retry 3 --output /dev/null "$INSTALLER_URL"
